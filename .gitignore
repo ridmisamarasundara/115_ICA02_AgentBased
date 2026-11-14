@@ -1,0 +1,18 @@
+# secrets
+.env
+
+# python
+venv/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# local db
+*.db
+*.sqlite3
+
+# editor / OS
+.vscode/
+.idea/
+.DS_Store
