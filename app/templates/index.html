@@ -2,4 +2,8 @@
 {% block content %}
 <h1 class="h3">Welcome to EventSphere</h1>
 <p>Venue booking and digital ticketing, powered by cooperating agents.</p>
+{% if not current_user %}
+  <a class="btn btn-primary" href="/login">Login</a>
+  <a class="btn btn-outline-primary" href="/register">Create an account</a>
+{% endif %}
 {% endblock %}

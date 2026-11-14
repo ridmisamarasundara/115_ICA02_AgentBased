@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Notifications - EventSphere{% endblock %}
+{% block content %}
+<h1 class="h4 mb-3">Notifications</h1>
+{% if items %}
+  <div class="list-group">
+  {% for n in items %}
+    <div class="list-group-item {% if n.is_new %}list-group-item-primary{% endif %}">
+      <div>{{ n.message }}{% if n.is_new %} <span class="badge bg-primary">new</span>{% endif %}</div>
+      <small class="text-muted">{{ n.created_at | dt }}</small>
+    </div>
+  {% endfor %}
+  </div>
+{% else %}
+  <p class="text-muted">No notifications yet.</p>
+{% endif %}
+{% endblock %}
