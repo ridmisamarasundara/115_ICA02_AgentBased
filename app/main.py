@@ -8,6 +8,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from app.config import SECRET_KEY
 from app.database import Base, engine
+import app.models  # noqa: F401  (registers all tables on Base)
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -19,7 +20,6 @@ templates = Jinja2Templates(directory=BASE_DIR / "templates")
 
 @app.on_event("startup")
 def on_startup():
-    # import models here later so their tables register on Base
     Base.metadata.create_all(bind=engine)
 
 
