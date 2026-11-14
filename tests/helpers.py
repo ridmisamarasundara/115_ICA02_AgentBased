@@ -6,20 +6,23 @@ from app.agents.bus import MessageBus
 from app.agents.messages import Message, Performative as P
 from app.agents.notification_agent import NotificationAgent
 from app.agents.ticket_agent import TicketAgent
+from app.agents.waitlist_agent import WaitlistAgent
 from app.models import Venue, User, Event, TicketCategory
 from app.models._util import utcnow
 
 
 def build_world(db):
     bus = MessageBus()
-    booking, ticket = BookingAgent(bus), TicketAgent(bus)
+    booking, ticket, waitlist = BookingAgent(bus), TicketAgent(bus), WaitlistAgent(bus)
     NotificationAgent(bus)
     venue = Venue(name="Main Hall", location="Campus", capacity=500, hourly_rate=1000, open_for_hire=True)
     ann = User(name="Ann", email="ann@x.com", password_hash="x")
     bob = User(name="Bob", email="bob@x.com", password_hash="x")
-    db.add_all([venue, ann, bob])
+    carol = User(name="Carol", email="carol@x.com", password_hash="x")
+    db.add_all([venue, ann, bob, carol])
     db.commit()
-    return SimpleNamespace(bus=bus, booking=booking, ticket=ticket, db=db, venue=venue, ann=ann, bob=bob)
+    return SimpleNamespace(bus=bus, booking=booking, ticket=ticket, waitlist=waitlist, db=db,
+                           venue=venue, ann=ann, bob=bob, carol=carol)
 
 
 def make_event(w, days=10, hours_ahead=None, quantity=10, price=500, status="published", title="Concert"):

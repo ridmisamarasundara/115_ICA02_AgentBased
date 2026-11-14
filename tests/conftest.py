@@ -1,5 +1,6 @@
 import os
 os.environ["DATABASE_URL"] = "sqlite:///./test.db"  # before app code is imported
+os.environ["APP_ENV"] = "test"                      # keeps the background timer off during tests
 
 import pytest
 from sqlalchemy import create_engine

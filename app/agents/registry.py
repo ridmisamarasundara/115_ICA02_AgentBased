@@ -4,12 +4,13 @@ from app.agents.bus import bus
 from app.agents.notification_agent import NotificationAgent
 from app.agents.ticket_agent import TicketAgent
 from app.agents.venue_agent import VenueAgent
+from app.agents.waitlist_agent import WaitlistAgent
 
 _agents = {}
 
 
 def setup_agents():
     if not _agents:
-        for cls in (VenueAgent, BookingAgent, TicketAgent, NotificationAgent):
+        for cls in (VenueAgent, BookingAgent, TicketAgent, WaitlistAgent, NotificationAgent):
             _agents[cls.name] = cls(bus)
     return _agents

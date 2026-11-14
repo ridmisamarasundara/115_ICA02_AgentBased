@@ -13,6 +13,7 @@ Booking (action: book)
       CHECK (sold <= quantity) constraint as a last line of defence.
   B7  Payment is simulated: a reference "PAY-XXXXXXXX" is stored, no card data.
   B8  Tickets are issued by TicketAgent; if that fails the seats are released (compensation).
+  B9  A booking marked from_hold skips B6: WaitlistAgent already reserved those seats for the user.
 Cancellation (action: cancel)
   R1  Only the owner can cancel, and only a confirmed booking.
   R2  Not allowed once the event has started, or if a ticket was already used.
@@ -91,15 +92,17 @@ class BookingAgent(BaseAgent):
             return self._refuse(msg, db, f"Limit is {MAX_PER_USER_PER_EVENT} tickets per person for one event "
                                          f"(you already hold {already})")
 
-        res = db.execute(update(TicketCategory).where(                             # B6
-            TicketCategory.id == cat.id, TicketCategory.sold + qty <= TicketCategory.quantity)
-            .values(sold=TicketCategory.sold + qty).execution_options(synchronize_session=False))
-        db.refresh(cat)
-        if res.rowcount == 0:
-            left = max(cat.quantity - cat.sold, 0)
-            return self._refuse(msg, db, f"Only {left} ticket(s) left in '{cat.name}'",
-                                tickets_left=left, can_join_waitlist=True,
-                                event_id=event.id, category_id=cat.id)
+        from_hold = bool(c.get("from_hold"))     # B9: seats already reserved for this user by WaitlistAgent
+        if not from_hold:
+            res = db.execute(update(TicketCategory).where(                         # B6
+                TicketCategory.id == cat.id, TicketCategory.sold + qty <= TicketCategory.quantity)
+                .values(sold=TicketCategory.sold + qty).execution_options(synchronize_session=False))
+            db.refresh(cat)
+            if res.rowcount == 0:
+                left = max(cat.quantity - cat.sold, 0)
+                return self._refuse(msg, db, f"Only {left} ticket(s) left in '{cat.name}'",
+                                    tickets_left=left, can_join_waitlist=True,
+                                    event_id=event.id, category_id=cat.id)
 
         total = round(float(cat.price) * qty, 2)
         booking = Booking(user_id=user_id, event_id=event.id, category_id=cat.id, quantity=qty,
@@ -118,7 +121,8 @@ class BookingAgent(BaseAgent):
             db.delete(payment)
             db.delete(booking)
             db.flush()
-            self._release(db, cat.id, qty)
+            if not from_hold:                  # held seats stay with WaitlistAgent
+                self._release(db, cat.id, qty)
             reason = issued.content.get("reason", "unknown") if issued else "no answer"
             return msg.reply(P.FAILURE, {"reason": f"Tickets could not be issued, seats released ({reason})"})
 

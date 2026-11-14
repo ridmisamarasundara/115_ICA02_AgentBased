@@ -23,6 +23,7 @@ USER_TEMPLATES = {
     "event_cancelled": "{event_title} was cancelled. You have been fully refunded ({refund}).",
     "seats_held": "Seats for {event_title} are being held for you until {expires}.",
     "hold_expired": "Your held seats for {event_title} expired and were offered to someone else.",
+    "waitlist_removed": "{event_title} was cancelled, so you were removed from its waitlist.",
 }
 ADMIN_TEMPLATES = {
     "hire_escalated": "Hire request #{request_id} for {venue_name} on {date} needs your approval.",
