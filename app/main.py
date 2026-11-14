@@ -13,7 +13,7 @@ from app.agents.scheduler import start_scheduler, stop_scheduler
 from app.config import APP_ENV, SECRET_KEY, SEED_DEMO
 from app.database import Base, SessionLocal, engine
 from app.deps import LoginRequired
-from app.routes import account, admin, auth, pages, staff
+from app.routes import account, admin, auth, bookings, events, hire, staff
 from app.templating import templates
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -23,7 +23,7 @@ app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY, same_site="lax",
                    https_only=(APP_ENV == "production"), max_age=60 * 60 * 8)
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 
-for module in (pages, auth, account, admin, staff):
+for module in (events, bookings, hire, auth, account, admin, staff):
     app.include_router(module.router)
 
 

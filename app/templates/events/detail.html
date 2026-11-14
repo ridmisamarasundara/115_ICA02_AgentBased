@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}{{ event.title }} - EventSphere{% endblock %}
+{% block content %}
+<a href="/" class="small">&larr; All events</a>
+<h1 class="h3 mt-2">{{ event.title }}
+  <span class="badge bg-secondary">{{ event.category }}</span>
+  {% if event.status == 'cancelled' %}<span class="badge bg-danger">Cancelled</span>{% endif %}
+  {% if event.status == 'draft' %}<span class="badge bg-warning text-dark">Draft</span>{% endif %}
+</h1>
+<p class="text-muted">{{ event.start_time | dt }} to {{ event.end_time | dt }}<br>{{ event.venue.name }}, {{ event.venue.location }}</p>
+<p>{{ event.description }}</p>
+
+<h2 class="h5">Tickets</h2>
+<div class="list-group mb-3">
+  {% for c in cats %}
+  <div class="list-group-item d-flex justify-content-between align-items-center">
+    <div><strong>{{ c.name }}</strong> &middot; {{ c.price | money }}</div>
+    {% if c.left == 0 %}<span class="badge bg-danger">Sold out</span>{% else %}<span class="badge bg-success">{{ c.left }} left</span>{% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+{% if event.status == 'cancelled' %}
+  <div class="alert alert-danger">This event was cancelled. Booked tickets have been fully refunded.</div>
+{% elif not on_sale %}
+  <div class="alert alert-secondary">Ticket sales are closed for this event.</div>
+{% elif not current_user %}
+  <div class="alert alert-info"><a href="/login?next=/events/{{ event.id }}">Login</a> or <a href="/register">register</a> to book tickets.</div>
+{% else %}
+  {% if any_left %}
+  <form method="post" action="/events/{{ event.id }}/book" class="card card-body mb-3">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <h2 class="h6">Book tickets</h2>
+    <div class="row g-2">
+      <div class="col-12 col-md-7">
+        <select class="form-select" name="category_id" aria-label="Ticket category">
+          {% for c in cats if c.left > 0 %}<option value="{{ c.id }}">{{ c.name }} - {{ c.price | money }} ({{ c.left }} left)</option>{% endfor %}
+        </select></div>
+      <div class="col-6 col-md-2"><input class="form-control" type="number" name="quantity" min="1" max="6" value="1" aria-label="Quantity"></div>
+      <div class="col-6 col-md-3"><button class="btn btn-primary w-100">Book &amp; pay</button></div>
+    </div>
+    <div class="form-text">Payment is simulated. No card details are needed. Maximum 6 tickets per booking.</div>
+  </form>
+  {% endif %}
+
+  {% for c in cats if c.left == 0 %}
+  <form method="post" action="/events/{{ event.id }}/waitlist" class="card card-body mb-3">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <input type="hidden" name="category_id" value="{{ c.id }}">
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+      <span><strong>{{ c.name }}</strong> is sold out.</span>
+      <input class="form-control" style="max-width:90px" type="number" name="quantity" min="1" max="6" value="1" aria-label="Quantity">
+      <button class="btn btn-outline-primary">Join waitlist</button>
+    </div>
+  </form>
+  {% endfor %}
+
+  {% for e in entries %}
+  {% if e.status == 'held' %}
+  <div class="alert alert-warning">
+    <strong>Seats held for you:</strong> {{ e.quantity }} &times; {{ e.category }}.
+    Time left: <strong data-countdown="{{ e.seconds_left }}"></strong>
+    <div class="mt-2 d-flex gap-2">
+      <form method="post" action="/waitlist/{{ e.id }}/claim"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="btn btn-success btn-sm">Claim &amp; pay</button></form>
+      <form method="post" action="/waitlist/{{ e.id }}/leave"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="btn btn-outline-secondary btn-sm">Give up seats</button></form>
+    </div>
+  </div>
+  {% else %}
+  <div class="alert alert-info d-flex justify-content-between align-items-center">
+    <span>You are <strong>#{{ e.position }}</strong> in line for {{ e.quantity }} &times; {{ e.category }}.</span>
+    <form method="post" action="/waitlist/{{ e.id }}/leave"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="btn btn-outline-secondary btn-sm">Leave waitlist</button></form>
+  </div>
+  {% endif %}
+  {% endfor %}
+{% endif %}
+{% endblock %}

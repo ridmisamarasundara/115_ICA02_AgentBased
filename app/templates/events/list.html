@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="h3 mb-3">Upcoming events</h1>
+<form class="row g-2 mb-3" method="get" action="/">
+  <div class="col-12 col-md-6"><input class="form-control" name="q" placeholder="Search by keyword" value="{{ q }}"></div>
+  <div class="col-8 col-md-4">
+    <select class="form-select" name="category">
+      <option value="">All categories</option>
+      {% for c in categories %}<option value="{{ c }}" {% if c == category %}selected{% endif %}>{{ c | capitalize }}</option>{% endfor %}
+    </select></div>
+  <div class="col-4 col-md-2"><button class="btn btn-primary w-100">Search</button></div>
+</form>
+{% if items %}
+<div class="row g-3">
+  {% for it in items %}
+  <div class="col-12 col-md-6 col-lg-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <span class="badge bg-secondary mb-2">{{ it.event.category }}</span>
+        <h2 class="h5"><a class="stretched-link text-decoration-none" href="/events/{{ it.event.id }}">{{ it.event.title }}</a></h2>
+        <div class="small text-muted">{{ it.event.start_time | dt }}<br>{{ it.venue }}</div>
+      </div>
+      <div class="card-footer d-flex justify-content-between">
+        <span>From {{ it.from_price | money }}</span>
+        {% if it.left == 0 %}<span class="badge bg-danger">Sold out</span>{% else %}<span class="badge bg-success">{{ it.left }} left</span>{% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+  <p class="text-muted">No events match your search.</p>
+{% endif %}
+{% endblock %}

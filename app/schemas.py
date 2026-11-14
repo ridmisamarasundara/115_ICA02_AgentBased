@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 
 from pydantic import BaseModel, field_validator, model_validator
 
@@ -41,3 +42,30 @@ class RegisterForm(BaseModel):
         if self.password != self.confirm:
             raise ValueError("Passwords do not match")
         return self
+
+
+class HireForm(BaseModel):
+    venue_id: int
+    start_time: datetime
+    end_time: datetime
+    guests: int
+    purpose: str
+
+    @field_validator("guests")
+    @classmethod
+    def _guests(cls, v):
+        if not 1 <= v <= 5000:
+            raise ValueError("Guests must be between 1 and 5000")
+        return v
+
+    @field_validator("purpose")
+    @classmethod
+    def _purpose(cls, v):
+        v = v.strip()
+        if not 3 <= len(v) <= 255:
+            raise ValueError("Purpose must be 3 to 255 characters")
+        return v
+
+
+HIRE_LABELS = {"venue_id": "Venue", "start_time": "Start time", "end_time": "End time",
+               "guests": "Guests", "purpose": "Purpose"}

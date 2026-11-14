@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}My bookings - EventSphere{% endblock %}
+{% block content %}
+<h1 class="h4 mb-3">My bookings</h1>
+{% if items %}
+<div class="list-group">
+  {% for it in items %}
+  <div class="list-group-item">
+    <div class="d-flex justify-content-between flex-wrap gap-1">
+      <a href="/bookings/{{ it.booking.id }}"><strong>{{ it.event.title }}</strong></a>
+      {% if it.booking.status == 'confirmed' %}<span class="badge bg-success">Confirmed</span>
+      {% else %}<span class="badge bg-secondary">Cancelled</span>{% endif %}
+    </div>
+    <div class="small text-muted">{{ it.event.start_time | dt }} &middot; {{ it.booking.quantity }} &times; {{ it.category }} &middot; {{ it.booking.total_amount | money }}</div>
+    {% if it.booking.status == 'cancelled' %}<div class="small">Refunded: {{ it.booking.refund_amount | money }}</div>{% endif %}
+    <div class="mt-2 d-flex gap-2">
+      <a class="btn btn-sm btn-outline-primary" href="/bookings/{{ it.booking.id }}">Tickets</a>
+      {% if it.can_cancel %}
+      <form method="post" action="/bookings/{{ it.booking.id }}/cancel" onsubmit="return confirm('Cancel this booking? Refund now: {{ it.refund_percent }}%');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button class="btn btn-sm btn-outline-danger">Cancel ({{ it.refund_percent }}% refund)</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+  <p class="text-muted">You have no bookings yet. <a href="/">Browse events</a>.</p>
+{% endif %}
+{% endblock %}

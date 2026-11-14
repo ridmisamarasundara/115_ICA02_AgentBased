@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Booking #{{ booking.id }} - EventSphere{% endblock %}
+{% block content %}
+<a href="/bookings" class="small">&larr; My bookings</a>
+<h1 class="h4 mt-2">{{ event.title }}</h1>
+<p class="text-muted">{{ event.start_time | dt }}</p>
+<div class="card mb-3"><div class="card-body">
+  <div>Booking #{{ booking.id }} &middot;
+    {% if booking.status == 'confirmed' %}<span class="badge bg-success">Confirmed</span>{% else %}<span class="badge bg-secondary">Cancelled</span>{% endif %}</div>
+  <div>{{ booking.quantity }} &times; {{ category }} &middot; Total {{ booking.total_amount | money }}</div>
+  {% if payment %}<div>Payment reference: <strong>{{ payment.reference }}</strong> <span class="text-muted small">(simulated)</span></div>{% endif %}
+  {% if booking.status == 'cancelled' %}<div>Refunded: {{ booking.refund_amount | money }}</div>{% endif %}
+</div></div>
+
+{% if can_cancel %}
+<div class="alert alert-light border">
+  Refund policy: more than 7 days before the event 100%, 48 hours to 7 days 50%, under 48 hours 0%.
+  If you cancel now you get <strong>{{ refund_percent }}% ({{ refund_now | money }})</strong>.
+  <form method="post" action="/bookings/{{ booking.id }}/cancel" class="mt-2" onsubmit="return confirm('Cancel this booking?');">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <button class="btn btn-outline-danger btn-sm">Cancel booking</button>
+  </form>
+</div>
+{% endif %}
+
+<h2 class="h5">Tickets</h2>
+{% for t in tickets %}
+<div class="card mb-2"><div class="card-body text-center">
+  {% if t.status == 'valid' %}
+    <img src="/tickets/{{ t.code }}/qr.png" alt="Ticket QR code" class="img-fluid" style="max-width:260px">
+    <div class="small text-muted">Ticket {{ loop.index }} &middot; show this QR code at the entrance</div>
+  {% else %}
+    <span class="badge bg-secondary">Ticket {{ loop.index }}: {{ t.status }}</span>
+  {% endif %}
+</div></div>
+{% endfor %}
+{% endblock %}
