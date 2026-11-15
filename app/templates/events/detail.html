@@ -1,22 +1,35 @@
 {% extends "base.html" %}
 {% block title %}{{ event.title }} - EventSphere{% endblock %}
+{% block hero %}
+<div class="es-hero es-hero-sm">
+  {% if event.venue.image_url %}<img class="es-hero-bg" src="{{ event.venue.image_url }}" alt="">{% endif %}
+  <div class="es-hero-shade"></div>
+  <div class="es-hero-body">
+    <div class="d-flex flex-wrap gap-2 mb-2">
+      <span class="es-glass-pill">{{ event.category | capitalize }}</span>
+      {% if event.status == 'cancelled' %}<span class="es-glass-pill">Cancelled</span>{% endif %}
+      {% if event.status == 'draft' %}<span class="es-glass-pill">Draft</span>{% endif %}
+    </div>
+    <h1 class="es-hero-title es-hero-title-sm">{{ event.title }}</h1>
+    <p class="es-hero-sub mb-0">{{ event.start_time | dt }} &middot; {{ event.venue.name }}</p>
+  </div>
+</div>
+{% endblock %}
 {% block content %}
-<a href="/" class="small">&larr; All events</a>
-<h1 class="h3 mt-2">{{ event.title }}
-  <span class="badge bg-secondary">{{ event.category }}</span>
-  {% if event.status == 'cancelled' %}<span class="badge bg-danger">Cancelled</span>{% endif %}
-  {% if event.status == 'draft' %}<span class="badge bg-warning text-dark">Draft</span>{% endif %}
-</h1>
-{% if event.venue.image_url %}<img src="{{ event.venue.image_url }}" alt="{{ event.venue.name }}" class="img-fluid rounded mb-2" style="max-height:240px">{% endif %}
-<p class="text-muted">{{ event.start_time | dt }} to {{ event.end_time | dt }}<br>{{ event.venue.name }}, {{ event.venue.location }}</p>
-<p>{{ event.description }}</p>
+<a href="/" class="es-back d-inline-block mt-3 mb-2">&larr; All events</a>
 
-<h2 class="h5">Tickets</h2>
-<div class="list-group mb-3">
+<div class="es-panel">
+  <div class="es-meta">{{ event.start_time | dt }} to {{ event.end_time | dt }}</div>
+  <div class="es-meta mb-2">{{ event.venue.name }}, {{ event.venue.location }}</div>
+  <p class="mb-0">{{ event.description }}</p>
+</div>
+
+<div class="es-panel">
+  <h2 class="es-section-title">Tickets</h2>
   {% for c in cats %}
-  <div class="list-group-item d-flex justify-content-between align-items-center">
-    <div><strong>{{ c.name }}</strong> &middot; {{ c.price | money }}</div>
-    {% if c.left == 0 %}<span class="badge bg-danger">Sold out</span>{% else %}<span class="badge bg-success">{{ c.left }} left</span>{% endif %}
+  <div class="es-ticketrow">
+    <div><strong>{{ c.name }}</strong><div class="es-meta">{% if c.price == 0 %}Free{% else %}{{ c.price | money }}{% endif %}</div></div>
+    {% if c.left == 0 %}<span class="badge rounded-pill text-bg-danger">Sold out</span>{% else %}<span class="badge rounded-pill text-bg-success">{{ c.left }} left</span>{% endif %}
   </div>
   {% endfor %}
 </div>
@@ -29,23 +42,23 @@
   <div class="alert alert-info"><a href="/login?next=/events/{{ event.id }}">Login</a> or <a href="/register">register</a> to book tickets.</div>
 {% else %}
   {% if any_left %}
-  <form method="post" action="/events/{{ event.id }}/book" class="card card-body mb-3">
+  <form method="post" action="/events/{{ event.id }}/book" class="es-panel">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-    <h2 class="h6">Book tickets</h2>
+    <h2 class="es-section-title">Book tickets</h2>
     <div class="row g-2">
       <div class="col-12 col-md-7">
         <select class="form-select" name="category_id" aria-label="Ticket category">
           {% for c in cats if c.left > 0 %}<option value="{{ c.id }}">{{ c.name }} - {{ c.price | money }} ({{ c.left }} left)</option>{% endfor %}
         </select></div>
-      <div class="col-6 col-md-2"><input class="form-control" type="number" name="quantity" min="1" max="6" value="1" aria-label="Quantity"></div>
-      <div class="col-6 col-md-3"><button class="btn btn-primary w-100">Book &amp; pay</button></div>
+      <div class="col-5 col-md-2"><input class="form-control" type="number" name="quantity" min="1" max="6" value="1" aria-label="Quantity"></div>
+      <div class="col-7 col-md-3"><button class="btn btn-primary w-100">Book &amp; pay</button></div>
     </div>
     <div class="form-text">Payment is simulated. No card details are needed. Maximum 6 tickets per booking.</div>
   </form>
   {% endif %}
 
   {% for c in cats if c.left == 0 %}
-  <form method="post" action="/events/{{ event.id }}/waitlist" class="card card-body mb-3">
+  <form method="post" action="/events/{{ event.id }}/waitlist" class="es-panel">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
     <input type="hidden" name="category_id" value="{{ c.id }}">
     <div class="d-flex flex-wrap gap-2 align-items-center">

@@ -1,39 +1,52 @@
 {% extends "base.html" %}
 {% block title %}Booking #{{ booking.id }} - EventSphere{% endblock %}
 {% block content %}
-<a href="/bookings" class="small">&larr; My bookings</a>
-<h1 class="h4 mt-2">{{ event.title }}</h1>
-<p class="text-muted">{{ event.start_time | dt }}</p>
-<div class="card mb-3"><div class="card-body">
-  <div>Booking #{{ booking.id }} &middot;
-    {% if booking.status == 'confirmed' %}<span class="badge bg-success">Confirmed</span>{% else %}<span class="badge bg-secondary">Cancelled</span>{% endif %}</div>
-  <div>{{ booking.quantity }} &times; {{ category }} &middot; Total {{ booking.total_amount | money }}</div>
-  {% if payment %}<div>Payment reference: <strong>{{ payment.reference }}</strong> <span class="text-muted small">(simulated)</span></div>{% endif %}
-  {% if booking.status == 'cancelled' %}<div>Refunded: {{ booking.refund_amount | money }}</div>{% endif %}
-</div></div>
+<a href="/bookings" class="es-back">&larr; My Tickets</a>
+<h1 class="h4 mt-2 mb-3">My Tickets</h1>
 
-{% if can_cancel %}
-<div class="alert alert-light border">
-  Refund policy: more than 7 days before the event 100%, 48 hours to 7 days 50%, under 48 hours 0%.
-  If you cancel now you get <strong>{{ refund_percent }}% ({{ refund_now | money }})</strong>.
+{% for t in tickets %}
+<div class="es-ticket {% if t.status != 'valid' %}es-ticket-inactive{% endif %}">
+  <span class="brand">EventSphere</span>
+  <h2>{{ event.title }}</h2>
+  <div class="line">{{ event.venue.name }}</div>
+  <div class="line">{{ event.start_time | full_dt }}</div>
+  <hr>
+  <div class="line fw-bold">{{ current_user.name }}</div>
+  <div class="line">{{ category }}</div>
+  <div class="label">Ticket ID</div>
+  <div class="line">ES-{{ event.id }}-{{ booking.id }}-{{ '%02d' | format(loop.index) }}</div>
+  {% if t.status == 'valid' %}
+    <div class="es-qr"><img src="/tickets/{{ t.code }}/qr.png" alt="Ticket QR code"></div>
+    <div class="es-scan-label">SCAN FOR ENTRY</div>
+    <details>
+      <summary>Show code (manual entry fallback)</summary>
+      <code class="user-select-all" style="word-break:break-all">{{ t.code }}</code>
+    </details>
+  {% else %}
+    <div class="text-center my-4"><span class="badge rounded-pill text-bg-light fs-6">Ticket {{ t.status }}</span></div>
+  {% endif %}
+  <hr>
+  <a class="btn-ticket" href="/events/{{ event.id }}">View event details</a>
+</div>
+{% endfor %}
+
+<div class="es-panel">
+  <div class="d-flex justify-content-between align-items-center mb-1">
+    <strong>Booking #{{ booking.id }}</strong>
+    {% if booking.status == 'confirmed' %}<span class="es-chipstatus ok">Confirmed</span>{% else %}<span class="es-chipstatus off">Cancelled</span>{% endif %}
+  </div>
+  <div class="es-meta">{{ booking.quantity }} &times; {{ category }} &middot; Total {{ booking.total_amount | money }}</div>
+  {% if payment %}<div class="es-meta">Payment reference: <strong>{{ payment.reference }}</strong> (simulated)</div>{% endif %}
+  {% if booking.status == 'cancelled' %}<div class="es-meta">Refunded: {{ booking.refund_amount | money }}</div>{% endif %}
+
+  {% if can_cancel %}
+  <hr>
+  <div class="es-meta">Refund policy: more than 7 days before the event 100%, 48 hours to 7 days 50%, under 48 hours 0%.
+    If you cancel now you get <strong>{{ refund_percent }}% ({{ refund_now | money }})</strong>.</div>
   <form method="post" action="/bookings/{{ booking.id }}/cancel" class="mt-2" onsubmit="return confirm('Cancel this booking?');">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
     <button class="btn btn-outline-danger btn-sm">Cancel booking</button>
   </form>
-</div>
-{% endif %}
-
-<h2 class="h5">Tickets</h2>
-{% for t in tickets %}
-<div class="card mb-2"><div class="card-body text-center">
-  {% if t.status == 'valid' %}
-    <img src="/tickets/{{ t.code }}/qr.png" alt="Ticket QR code" class="img-fluid" style="max-width:260px">
-    <div class="small text-muted">Ticket {{ loop.index }} &middot; show this QR code at the entrance</div>
-    <details class="small mt-1"><summary>Show code (manual entry fallback)</summary>
-      <code class="user-select-all" style="word-break:break-all">{{ t.code }}</code></details>
-  {% else %}
-    <span class="badge bg-secondary">Ticket {{ loop.index }}: {{ t.status }}</span>
   {% endif %}
-</div></div>
-{% endfor %}
+</div>
 {% endblock %}

@@ -3,21 +3,19 @@
 {% block content %}
 <h1 class="h4 mb-3">My hire requests</h1>
 {% if items %}
-<div class="list-group">
   {% for it in items %}
-  <div class="list-group-item">
+  <div class="es-booking">
     <div class="d-flex justify-content-between flex-wrap gap-1">
       <strong>{{ it.venue }}</strong>
-      <span class="badge {% if it.r.status == 'confirmed' %}bg-success{% elif it.r.status == 'escalated' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
-        {% if it.r.status == 'escalated' %}waiting for admin{% else %}{{ it.r.status }}{% endif %}</span>
+      <span class="es-chipstatus {% if it.r.status == 'confirmed' %}ok{% else %}off{% endif %}">{% if it.r.status == 'escalated' %}waiting for admin{% else %}{{ it.r.status }}{% endif %}</span>
     </div>
-    <div class="small text-muted">{{ it.r.start_time | dt }} to {{ it.r.end_time.strftime('%H:%M') }} &middot; {{ it.r.guests }} guests &middot; {{ it.r.price | money }}</div>
-    <div class="small">{{ it.r.purpose }}</div>
-    <div class="small text-muted">{{ it.r.decision_reason }}</div>
+    <div class="es-meta">{{ it.r.start_time | dt }} to {{ it.r.end_time.strftime('%H:%M') }} &middot; {{ it.r.guests }} guests &middot; {{ it.r.price | money }}</div>
+    <div class="es-meta">Purpose: {{ it.r.purpose }}</div>
+    <div class="es-meta">{{ it.r.decision_reason }}</div>
   </div>
   {% endfor %}
-</div>
 {% else %}
-  <p class="text-muted">No hire requests yet. <a href="/hire">Request a venue</a>.</p>
+  <div class="es-empty">No hire requests yet.<br><a href="/hire">Request a venue</a></div>
 {% endif %}
+<p class="text-center"><a class="btn btn-outline-primary" href="/hire">New hire request</a></p>
 {% endblock %}

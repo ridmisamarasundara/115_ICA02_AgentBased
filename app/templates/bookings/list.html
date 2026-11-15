@@ -1,20 +1,25 @@
 {% extends "base.html" %}
-{% block title %}My bookings - EventSphere{% endblock %}
+{% block title %}My Tickets - EventSphere{% endblock %}
 {% block content %}
-<h1 class="h4 mb-3">My bookings</h1>
+{% set cat_icons = {'concert': '🎵', 'workshop': '🛠️', 'seminar': '🎤', 'conference': '🏛️'} %}
+<h1 class="h4 mb-3">My Tickets</h1>
 {% if items %}
-<div class="list-group">
   {% for it in items %}
-  <div class="list-group-item">
-    <div class="d-flex justify-content-between flex-wrap gap-1">
-      <a href="/bookings/{{ it.booking.id }}"><strong>{{ it.event.title }}</strong></a>
-      {% if it.booking.status == 'confirmed' %}<span class="badge bg-success">Confirmed</span>
-      {% else %}<span class="badge bg-secondary">Cancelled</span>{% endif %}
+  <div class="es-booking">
+    <div class="d-flex gap-3">
+      <div class="es-card-media tile-{{ it.event.category }}" style="flex-basis:64px;height:64px;font-size:1.6rem">{{ cat_icons.get(it.event.category, '🎟️') }}</div>
+      <div class="flex-grow-1" style="min-width:0">
+        <div class="d-flex justify-content-between gap-2">
+          <a href="/bookings/{{ it.booking.id }}" class="fw-bold text-decoration-none" style="color:var(--es-ink)">{{ it.event.title }}</a>
+          {% if it.booking.status == 'confirmed' %}<span class="es-chipstatus ok">Confirmed</span>{% else %}<span class="es-chipstatus off">Cancelled</span>{% endif %}
+        </div>
+        <div class="es-meta">{{ it.event.start_time | short_dt }}</div>
+        <div class="es-meta">{{ it.booking.quantity }} &times; {{ it.category }} &middot; {{ it.booking.total_amount | money }}</div>
+        {% if it.booking.status == 'cancelled' %}<div class="es-meta">Refunded: {{ it.booking.refund_amount | money }}</div>{% endif %}
+      </div>
     </div>
-    <div class="small text-muted">{{ it.event.start_time | dt }} &middot; {{ it.booking.quantity }} &times; {{ it.category }} &middot; {{ it.booking.total_amount | money }}</div>
-    {% if it.booking.status == 'cancelled' %}<div class="small">Refunded: {{ it.booking.refund_amount | money }}</div>{% endif %}
     <div class="mt-2 d-flex gap-2">
-      <a class="btn btn-sm btn-outline-primary" href="/bookings/{{ it.booking.id }}">Tickets</a>
+      <a class="btn btn-sm btn-primary" href="/bookings/{{ it.booking.id }}">View tickets</a>
       {% if it.can_cancel %}
       <form method="post" action="/bookings/{{ it.booking.id }}/cancel" onsubmit="return confirm('Cancel this booking? Refund now: {{ it.refund_percent }}%');">
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
@@ -24,8 +29,7 @@
     </div>
   </div>
   {% endfor %}
-</div>
 {% else %}
-  <p class="text-muted">You have no bookings yet. <a href="/">Browse events</a>.</p>
+  <div class="es-empty">You have no tickets yet.<br><a href="/">Browse events</a></div>
 {% endif %}
 {% endblock %}

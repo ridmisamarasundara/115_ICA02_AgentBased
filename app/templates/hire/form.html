@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% block title %}Hire a venue - EventSphere{% endblock %}
 {% block content %}
-<h1 class="h4 mb-3">Hire a venue</h1>
-<p class="text-muted">Request a whole venue for a private occasion. Weekend hires carry a 25% surcharge. Routine requests are confirmed immediately.</p>
+<h1 class="h4 mb-1">Hire a venue</h1>
+<p class="es-meta">Request a whole venue for a private occasion. Weekend hires carry a 25% surcharge. Routine requests are confirmed immediately.</p>
 
 {% if errors %}<div class="alert alert-danger"><ul class="mb-0">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
 
@@ -20,7 +20,7 @@
       <input type="hidden" name="guests" value="{{ form.guests }}">
       <input type="hidden" name="purpose" value="{{ form.purpose }}">
       <span><strong>{{ a.venue_name }}</strong><br>{{ a.start | dt }} to {{ a.end.strftime('%H:%M') }} &middot; {{ a.price | money }}
-        <span class="badge bg-light text-dark border">{{ 'Other venue' if a.type == 'other_venue' else 'Other time' }}</span></span>
+        <span class="badge rounded-pill text-bg-light border">{{ 'Other venue' if a.type == 'other_venue' else 'Other time' }}</span></span>
       <button class="btn btn-sm btn-success">Book this instead</button>
     </form>
     {% endfor %}
@@ -28,7 +28,7 @@
 </div>
 {% endif %}
 
-<form method="post" action="/hire" class="card card-body">
+<form method="post" action="/hire" class="es-panel">
   <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
   <div class="mb-3"><label class="form-label" for="venue_id">Venue</label>
     <select class="form-select" id="venue_id" name="venue_id" required>
@@ -46,7 +46,7 @@
     <div class="col-12 col-md-8"><label class="form-label" for="purpose">Purpose</label>
       <input class="form-control" id="purpose" name="purpose" placeholder="e.g. Farewell party" value="{{ form.get('purpose', '') }}" required></div>
   </div>
-  <button class="btn btn-primary">Request hire</button>
+  <button class="btn btn-primary w-100">Request hire</button>
 </form>
-<p class="mt-3"><a href="/hire/my">View my hire requests</a></p>
+<p class="text-center"><a href="/hire/my">View my hire requests</a></p>
 {% endblock %}

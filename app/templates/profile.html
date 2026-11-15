@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Profile - EventSphere{% endblock %}
+{% block content %}
+<div class="es-auth">
+  <div class="es-panel d-flex align-items-center gap-3">
+    <div class="es-avatar">{{ current_user.name[:1] | upper }}</div>
+    <div>
+      <div class="fw-bold fs-5">{{ current_user.name }}</div>
+      <div class="es-meta">{{ current_user.email }}</div>
+      <span class="badge rounded-pill text-bg-secondary mt-1">{{ current_user.role }}</span>
+    </div>
+  </div>
+
+  <div class="row g-2 mb-3 text-center">
+    <div class="col-6"><div class="es-panel mb-0"><div class="h4 mb-0">{{ counts.bookings }}</div><div class="es-meta">Active bookings</div></div></div>
+    <div class="col-6"><div class="es-panel mb-0"><div class="h4 mb-0">{{ counts.hires }}</div><div class="es-meta">Hire requests</div></div></div>
+  </div>
+
+  <div class="es-menu mb-3">
+    <a href="/bookings"><span>My tickets</span><span>&rsaquo;</span></a>
+    <a href="/notifications"><span>Notifications</span>{% if unread_count %}<span class="badge rounded-pill text-bg-danger">{{ unread_count }}</span>{% else %}<span>&rsaquo;</span>{% endif %}</a>
+    <a href="/hire/my"><span>My hire requests</span><span>&rsaquo;</span></a>
+    {% if current_user.role == 'admin' %}<a href="/admin"><span>Admin dashboard</span><span>&rsaquo;</span></a>{% endif %}
+    {% if current_user.role in ['admin', 'staff'] %}<a href="/staff/scan"><span>Ticket scanner</span><span>&rsaquo;</span></a>{% endif %}
+    <button form="logout-form" class="danger"><span>Logout</span><span>&rsaquo;</span></button>
+  </div>
+</div>
+{% endblock %}

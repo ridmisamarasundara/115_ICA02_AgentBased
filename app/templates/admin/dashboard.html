@@ -4,20 +4,20 @@
 {% set active = 'dashboard' %}{% include "admin/_nav.html" %}
 <h1 class="h4 mb-3">Organiser dashboard</h1>
 <div class="row g-2 mb-3">
-  <div class="col-6 col-md-3"><div class="card card-body"><div class="small text-muted">Tickets sold</div><div class="h4 mb-0">{{ totals.sold }}</div></div></div>
-  <div class="col-6 col-md-3"><div class="card card-body"><div class="small text-muted">Revenue (simulated)</div><div class="h4 mb-0">{{ totals.revenue | money }}</div></div></div>
-  <div class="col-6 col-md-3"><div class="card card-body"><div class="small text-muted">Check-ins</div><div class="h4 mb-0">{{ totals.checkins }}</div></div></div>
-  <div class="col-6 col-md-3"><div class="card card-body"><div class="small text-muted">Hire requests waiting</div><div class="h4 mb-0"><a href="/admin/hire">{{ totals.pending_hires }}</a></div></div></div>
+  <div class="col-6 col-md-3"><div class="es-stat"><div class="es-stat-label">Tickets sold</div><div class="es-stat-value">{{ totals.sold }}</div></div></div>
+  <div class="col-6 col-md-3"><div class="es-stat"><div class="es-stat-label">Revenue (simulated)</div><div class="es-stat-value">{{ totals.revenue | money }}</div></div></div>
+  <div class="col-6 col-md-3"><div class="es-stat"><div class="es-stat-label">Check-ins</div><div class="es-stat-value">{{ totals.checkins }}</div></div></div>
+  <div class="col-6 col-md-3"><div class="es-stat dark"><div class="es-stat-label">Hire requests waiting</div><div class="es-stat-value"><a href="/admin/hire">{{ totals.pending_hires }}</a></div></div></div>
 </div>
 
-<div class="table-responsive mb-4">
-<table class="table table-sm align-middle">
+<div class="table-responsive es-panel p-2 mb-4">
+<table class="table table-sm align-middle mb-0">
   <thead><tr><th>Event</th><th>Status</th><th class="text-end">Sold / offered</th><th class="text-end">Venue capacity</th><th class="text-end">Revenue</th><th class="text-end">Checked in</th></tr></thead>
   <tbody>
   {% for r in rows %}
   <tr>
     <td><a href="/events/{{ r.event.id }}">{{ r.event.title }}</a><div class="small text-muted">{{ r.event.start_time | dt }} &middot; {{ r.venue }}</div></td>
-    <td><span class="badge bg-{{ 'success' if r.event.status == 'published' else ('danger' if r.event.status == 'cancelled' else 'warning text-dark') }}">{{ r.event.status }}</span></td>
+    <td><span class="badge rounded-pill text-bg-{{ 'success' if r.event.status == 'published' else ('danger' if r.event.status == 'cancelled' else 'warning') }}">{{ r.event.status }}</span></td>
     <td class="text-end">{{ r.sold }} / {{ r.offered }}</td>
     <td class="text-end">{{ r.capacity }}</td>
     <td class="text-end">{{ r.revenue | money }}</td>
@@ -32,8 +32,8 @@
 
 {% if chart.labels %}
 <div class="row g-3">
-  <div class="col-12 col-lg-6"><div class="card card-body"><h2 class="h6">Tickets sold and check-ins per event</h2><canvas id="salesChart" height="150"></canvas></div></div>
-  <div class="col-12 col-lg-6"><div class="card card-body"><h2 class="h6">Revenue per event (Rs.)</h2><canvas id="revenueChart" height="150"></canvas></div></div>
+  <div class="col-12 col-lg-6"><div class="es-panel mb-0"><h2 class="es-section-title">Tickets sold and check-ins per event</h2><canvas id="salesChart" height="150"></canvas></div></div>
+  <div class="col-12 col-lg-6"><div class="es-panel mb-0"><h2 class="es-section-title">Revenue per event (Rs.)</h2><canvas id="revenueChart" height="150"></canvas></div></div>
 </div>
 {% endif %}
 <p class="small text-muted mt-3">{{ totals.messages }} agent messages logged. <a href="/admin/messages">Open the agent log</a>.</p>
@@ -43,12 +43,18 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script>
   const data = {{ chart | tojson }};
+  // EventSphere palette: amber, espresso brown, copper
+  Chart.defaults.color = '#7A6C60';
+  Chart.defaults.font.family = 'Manrope, system-ui, sans-serif';
+  const grid = {color: 'rgba(90, 59, 37, 0.08)'};
   new Chart(document.getElementById('salesChart'), {type: 'bar',
-    data: {labels: data.labels, datasets: [{label: 'Tickets sold', data: data.sold}, {label: 'Checked in', data: data.checkins}]},
-    options: {responsive: true, scales: {y: {beginAtZero: true, ticks: {precision: 0}}}}});
+    data: {labels: data.labels, datasets: [
+      {label: 'Tickets sold', data: data.sold, backgroundColor: '#E0A030', borderRadius: 8},
+      {label: 'Checked in', data: data.checkins, backgroundColor: '#3B2619', borderRadius: 8}]},
+    options: {responsive: true, scales: {x: {grid: {display: false}}, y: {beginAtZero: true, grid: grid, ticks: {precision: 0}}}}});
   new Chart(document.getElementById('revenueChart'), {type: 'bar',
-    data: {labels: data.labels, datasets: [{label: 'Revenue', data: data.revenue}]},
-    options: {responsive: true, scales: {y: {beginAtZero: true}}}});
+    data: {labels: data.labels, datasets: [{label: 'Revenue', data: data.revenue, backgroundColor: '#B5732A', borderRadius: 8}]},
+    options: {responsive: true, scales: {x: {grid: {display: false}}, y: {beginAtZero: true, grid: grid}}}});
 </script>
 {% endif %}
 {% endblock %}

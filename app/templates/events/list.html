@@ -1,34 +1,102 @@
 {% extends "base.html" %}
-{% block content %}
-<h1 class="h3 mb-3">Upcoming events</h1>
-<form class="row g-2 mb-3" method="get" action="/">
-  <div class="col-12 col-md-6"><input class="form-control" name="q" placeholder="Search by keyword" value="{{ q }}"></div>
-  <div class="col-8 col-md-4">
-    <select class="form-select" name="category">
-      <option value="">All categories</option>
-      {% for c in categories %}<option value="{{ c }}" {% if c == category %}selected{% endif %}>{{ c | capitalize }}</option>{% endfor %}
-    </select></div>
-  <div class="col-4 col-md-2"><button class="btn btn-primary w-100">Search</button></div>
-</form>
-{% if items %}
-<div class="row g-3">
-  {% for it in items %}
-  <div class="col-12 col-md-6 col-lg-4">
-    <div class="card h-100">
-      <div class="card-body">
-        <span class="badge bg-secondary mb-2">{{ it.event.category }}</span>
-        <h2 class="h5"><a class="stretched-link text-decoration-none" href="/events/{{ it.event.id }}">{{ it.event.title }}</a></h2>
-        <div class="small text-muted">{{ it.event.start_time | dt }}<br>{{ it.venue }}</div>
-      </div>
-      <div class="card-footer d-flex justify-content-between">
-        <span>From {{ it.from_price | money }}</span>
-        {% if it.left == 0 %}<span class="badge bg-danger">Sold out</span>{% else %}<span class="badge bg-success">{{ it.left }} left</span>{% endif %}
-      </div>
+{% from "_icons.html" import icon %}
+{% block title %}EventSphere - Book your next experience{% endblock %}
+{% block hero %}
+<div class="es-hero">
+  <div class="es-lamp d-none d-md-block" aria-hidden="true"></div>
+  <div class="es-hero-body">
+    <h1 class="es-hero-title">Book Your Next Experience</h1>
+    <p class="es-hero-sub">Discover concerts, workshops and seminars, or hire a whole venue. Walk in with a QR code on your phone.</p>
+    <a class="es-btn-pill mb-3" href="#events">BROWSE EVENTS <span class="es-btn-dot">{{ icon('arrow', 15) }}</span></a>
+    <form class="es-search" method="get" action="/" id="search" role="search">
+      {{ icon('search', 18) }}
+      <input type="search" name="q" value="{{ q }}" placeholder="Search concerts, workshops..." aria-label="Search events">
+      {% if category %}<input type="hidden" name="category" value="{{ category }}">{% endif %}
+      <button class="visually-hidden">Search</button>
+    </form>
+    <div class="es-chips">
+      <a class="es-chip {% if not category %}active{% endif %}" href="/{% if q %}?q={{ q | urlencode }}{% endif %}">All</a>
+      {% for c in categories %}<a class="es-chip {% if c == category %}active{% endif %}" href="/?category={{ c }}{% if q %}&amp;q={{ q | urlencode }}{% endif %}">{{ c | capitalize }}s</a>{% endfor %}
+      <a class="es-chip" href="/hire">Private Hire</a>
     </div>
   </div>
-  {% endfor %}
+  {% if items %}
+  {% set nxt = items[0] %}
+  <aside class="es-glass-card d-none d-md-block">
+    <div class="small opacity-75">Next up</div>
+    <div class="es-serif fs-4 lh-sm">{{ nxt.event.title }}</div>
+    <div class="small opacity-75">{{ nxt.event.start_time | short_dt }} &middot; {{ nxt.venue }}</div>
+    <div class="fw-bold mt-1">{% if nxt.from_price == 0 %}Free{% else %}From {{ nxt.from_price | money }}{% endif %}</div>
+  </aside>
+  {% endif %}
 </div>
-{% else %}
-  <p class="text-muted">No events match your search.</p>
-{% endif %}
+{% endblock %}
+{% block content %}
+{% set cat_icons = {'concert': '🎵', 'workshop': '🛠️', 'seminar': '🎤', 'conference': '🏛️'} %}
+<section id="events" class="mt-4">
+  <div class="d-flex justify-content-between align-items-end mb-3">
+    <h2 class="es-h2 mb-0">Upcoming Events</h2>
+    <span class="es-meta">{{ items | length }} event{{ '' if items | length == 1 else 's' }}</span>
+  </div>
+  {% if items %}
+  <div class="es-pgrid">
+    {% for it in items %}
+    <article class="es-pcard tile-{{ it.event.category }}">
+      {% if it.event.venue.image_url %}<img class="es-pcard-bg" src="{{ it.event.venue.image_url }}" alt="">{% else %}<span class="es-pcard-emoji" aria-hidden="true">{{ cat_icons.get(it.event.category, '🎟️') }}</span>{% endif %}
+      <a class="stretched-link" href="/events/{{ it.event.id }}" aria-label="Open event"></a>
+      <div class="es-pcard-top">
+        <span class="es-glass-pill">{{ it.event.category | capitalize }}</span>
+        <span class="es-glass-pill">{{ it.event.start_time | short_dt }}</span>
+      </div>
+      <div class="es-pcard-bottom">
+        <h3 class="es-pcard-title">{{ it.event.title }}</h3>
+        <div class="es-pcard-meta">{{ it.venue }}</div>
+        <div class="es-pcard-foot">
+          <span>{% if it.from_price == 0 %}Free{% else %}From {{ it.from_price | money }}{% endif %}</span>
+          {% if it.left == 0 %}<a class="btn-book soldout" href="/events/{{ it.event.id }}">Sold out</a>{% else %}<a class="btn-book" href="/events/{{ it.event.id }}">Book Now</a>{% endif %}
+        </div>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+    <div class="es-empty">No events match your search.<br><a href="/">Clear filters</a></div>
+  {% endif %}
+</section>
+
+<section class="es-cream mt-5">
+  <div class="row g-4 align-items-center">
+    <div class="col-12 col-lg-5">
+      <div class="es-eyebrow">PRIVATE HIRE</div>
+      <h2 class="es-h2">Find the Perfect Space</h2>
+      <p class="es-meta">Farewells, receptions and club meetings. Request a whole venue and get a decision straight away.</p>
+      <a class="es-btn-pill es-btn-pill-dark" href="/hire">HIRE A VENUE <span class="es-btn-dot amber">{{ icon('arrow', 15) }}</span></a>
+    </div>
+    <div class="col-12 col-lg-7">
+      <div class="es-feature"><strong>Instant decisions</strong><span>Routine requests are confirmed automatically with a clear price.</span></div>
+      <div class="es-feature"><strong>Smart alternatives</strong><span>If your slot is taken we suggest other times and other venues, not just a refusal.</span></div>
+      <div class="es-feature"><strong>Simple pricing</strong><span>Hours multiplied by the hourly rate. Weekends carry a 25% surcharge.</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="es-band mt-5" aria-hidden="true">CONCERTS / WORKSHOPS / VENUES / TICKETS</div>
+
+<section id="faq" class="mt-5 es-faq">
+  <h2 class="es-h2 text-center mb-3">Frequently Asked Questions</h2>
+  <div class="accordion mx-auto" id="faqList" style="max-width:760px">
+    {% for q_, a_ in [
+      ('How do I enter the event?', 'Open My Tickets on your phone and show the QR code to the gate staff. Each ticket can be admitted only once.'),
+      ('What is the refund policy?', 'More than 7 days before the event you get 100% back, between 48 hours and 7 days 50%, and under 48 hours 0%. If an event is cancelled, everyone is refunded in full.'),
+      ('What if an event is sold out?', 'Join the waitlist. When seats free up we hold them for you for 15 minutes with a live countdown. Claim them before time runs out.'),
+      ('How does private venue hire work?', 'Choose a venue, date and time. Routine requests are confirmed instantly. If there is a clash we offer alternatives, and large requests go to an admin for approval.'),
+      ('Is the payment real?', 'No. Payments are simulated and no card details are ever collected.')
+    ] %}
+    <div class="accordion-item">
+      <h3 class="accordion-header"><button class="accordion-button {% if not loop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#faq{{ loop.index }}" aria-expanded="{{ 'true' if loop.first else 'false' }}">{{ q_ }}</button></h3>
+      <div id="faq{{ loop.index }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}" data-bs-parent="#faqList"><div class="accordion-body">{{ a_ }}</div></div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
 {% endblock %}
