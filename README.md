@@ -3,7 +3,7 @@
 A mobile-friendly venue booking and digital ticketing platform in which **every booking decision is made by cooperating software agents**.
 Built for *IT4123 Agent Based Computing Practical, ICA 02*.
 
-- **Live site:** eventsphere-production-2031976c.up.railway.app   
+- **Live site:** [eventsphere-production-2031976c.up.railway.app](https://eventsphere-production-2031976c.up.railway.app/)   
 - **Repository:** https://github.com/ridmisamarasundara/EventSphere 
 
 Attendees browse events, book tickets from their phone and walk in with a QR code. The same venues can be hired whole for private occasions.
