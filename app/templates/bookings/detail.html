@@ -29,6 +29,8 @@
   {% if t.status == 'valid' %}
     <img src="/tickets/{{ t.code }}/qr.png" alt="Ticket QR code" class="img-fluid" style="max-width:260px">
     <div class="small text-muted">Ticket {{ loop.index }} &middot; show this QR code at the entrance</div>
+    <details class="small mt-1"><summary>Show code (manual entry fallback)</summary>
+      <code class="user-select-all" style="word-break:break-all">{{ t.code }}</code></details>
   {% else %}
     <span class="badge bg-secondary">Ticket {{ loop.index }}: {{ t.status }}</span>
   {% endif %}

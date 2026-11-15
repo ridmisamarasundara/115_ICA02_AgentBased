@@ -29,6 +29,8 @@ for module in (events, bookings, hire, auth, account, admin, admin_catalog, staf
 
 @app.exception_handler(LoginRequired)
 async def login_required_handler(request: Request, exc: LoginRequired):
+    if request.url.path.startswith("/api/"):
+        return JSONResponse({"detail": "Login required"}, status_code=401)
     return RedirectResponse(f"/login?next={quote(exc.next_url)}", status_code=303)
 
 

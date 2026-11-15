@@ -1,5 +1,43 @@
 {% extends "base.html" %}
+{% block title %}Scanner - EventSphere{% endblock %}
 {% block content %}
-<h1 class="h4">Ticket scanner</h1>
-<p>Staff area. The camera scanner is added in a later step.</p>
+<h1 class="h4 mb-3">Ticket scanner</h1>
+{% if not items %}
+  <div class="alert alert-info">There are no published events to scan for right now.</div>
+{% else %}
+<div id="scanner" data-csrf="{{ csrf_token }}">
+  <div class="mb-3">
+    <label class="form-label" for="event">Event being scanned</label>
+    <select class="form-select" id="event">
+      {% for it in items %}
+      <option value="{{ it.event.id }}" {% if it.event.id == selected %}selected{% endif %}>{{ it.event.title }} - {{ it.event.start_time | dt }}{% if it.open_now %} (check-in open){% endif %}</option>
+      {% endfor %}
+    </select>
+    <div class="form-text">Tickets are only admitted from 2 hours before the start until the event ends.</div>
+  </div>
+
+  <div id="result" class="alert alert-secondary text-center" aria-live="polite">Ready. Scan a ticket QR code or type the code below.</div>
+
+  <div class="mb-3">
+    <button type="button" id="start-camera" class="btn btn-primary w-100 mb-2">Start camera</button>
+    <div id="reader" style="width:100%;max-width:420px;margin:auto"></div>
+    <div class="form-text">The camera needs HTTPS (or localhost) and your permission. If it does not work, use manual entry.</div>
+  </div>
+
+  <form id="manual-form" class="card card-body mb-3">
+    <label class="form-label" for="manual-code">Manual entry</label>
+    <div class="input-group">
+      <input class="form-control font-monospace" id="manual-code" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Type or paste the ticket code">
+      <button class="btn btn-outline-primary">Check</button>
+    </div>
+  </form>
+
+  <h2 class="h6">Recent scans</h2>
+  <ul id="history" class="list-group mb-4"></ul>
+</div>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="/static/js/scanner.js"></script>
 {% endblock %}

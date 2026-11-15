@@ -67,13 +67,14 @@ def test_event_draft_then_publish(client):
     venue_id = new_venue(client)
     r = post(client, "/admin/events/new", **event_form(venue_id, action="draft"))
     assert r.status_code == 303
-    assert "Admin Concert" not in client.get("/").text                  # drafts are not public
     with SessionLocal() as db:
         ev = db.query(Event).filter_by(title="Admin Concert").one()
         assert ev.status == "draft" and len(ev.categories) == 1
         ev_id = ev.id
+    link = f'href="/events/{ev_id}"'
+    assert link not in client.get("/").text                             # drafts are not public
     assert post(client, f"/admin/events/{ev_id}/publish").status_code == 303
-    assert "Admin Concert" in client.get("/").text
+    assert link in client.get("/").text
 
 
 def test_tickets_cannot_exceed_venue_capacity(client):
@@ -89,7 +90,9 @@ def test_overlapping_events_at_a_venue_are_refused(client):
     assert post(client, "/admin/events/new", **event_form(venue_id, title="First")).status_code == 303
     clash = post(client, "/admin/events/new", **event_form(venue_id, title="Second", hour=19))
     assert clash.status_code == 400 and "not free" in clash.text
-    after_buffer = post(client, "/admin/events/new", **event_form(venue_id, title="Third", hour=21))   # 21:00 + 30 min buffer
+    inside_buffer = post(client, "/admin/events/new", **event_form(venue_id, title="Third", hour=21))
+    assert inside_buffer.status_code == 400 and "turnaround buffer" in inside_buffer.text   # First ends 21:00
+    after_buffer = post(client, "/admin/events/new", **event_form(venue_id, title="Fourth", hour=22))
     assert after_buffer.status_code == 303
 
 
