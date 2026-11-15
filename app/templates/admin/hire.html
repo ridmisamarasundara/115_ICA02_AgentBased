@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Hire requests - EventSphere{% endblock %}
+{% block content %}
+{% set active = 'hire' %}{% include "admin/_nav.html" %}
+<h1 class="h4 mb-3">Venue hire requests</h1>
+<div class="list-group">
+  {% for it in items %}
+  <div class="list-group-item">
+    <div class="d-flex justify-content-between flex-wrap gap-1">
+      <strong>{{ it.venue }} &middot; {{ it.user }}</strong>
+      <span class="badge {% if it.r.status == 'confirmed' %}bg-success{% elif it.r.status == 'escalated' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">{{ 'waiting for admin' if it.r.status == 'escalated' else it.r.status }}</span>
+    </div>
+    <div class="small text-muted">{{ it.r.start_time | dt }} to {{ it.r.end_time.strftime('%H:%M') }} &middot; {{ it.r.guests }} guests &middot; {{ it.r.price | money }}</div>
+    <div class="small">Purpose: {{ it.r.purpose }}</div>
+    <div class="small text-muted">VenueAgent: {{ it.r.decision_reason }}</div>
+    {% if it.r.status == 'escalated' %}
+    <form method="post" action="/admin/hire/{{ it.r.id }}/resolve" class="mt-2 d-flex flex-wrap gap-2">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <input class="form-control form-control-sm" style="max-width:260px" name="reason" placeholder="Reason (optional)">
+      <button class="btn btn-sm btn-success" name="decision" value="approve">Approve</button>
+      <button class="btn btn-sm btn-outline-danger" name="decision" value="reject">Reject</button>
+    </form>
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="list-group-item text-muted">No hire requests yet.</div>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Events - EventSphere{% endblock %}
+{% block content %}
+{% set active = 'events' %}{% include "admin/_nav.html" %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h4 mb-0">Events</h1><a class="btn btn-primary btn-sm" href="/admin/events/new">New event</a>
+</div>
+<div class="list-group">
+  {% for it in items %}
+  <div class="list-group-item">
+    <div class="d-flex justify-content-between flex-wrap gap-1">
+      <a href="/events/{{ it.event.id }}"><strong>{{ it.event.title }}</strong></a>
+      <span class="badge bg-{{ 'success' if it.event.status == 'published' else ('danger' if it.event.status == 'cancelled' else 'warning text-dark') }}">{{ it.event.status }}</span>
+    </div>
+    <div class="small text-muted">{{ it.event.start_time | dt }} &middot; {{ it.venue }} &middot; {{ it.sold }} sold of {{ it.offered }} tickets</div>
+    <div class="mt-2 d-flex flex-wrap gap-2">
+      {% if it.event.status != 'cancelled' %}<a class="btn btn-sm btn-outline-primary" href="/admin/events/{{ it.event.id }}/edit">Edit</a>{% endif %}
+      {% if it.event.status == 'draft' %}
+        <form method="post" action="/admin/events/{{ it.event.id }}/publish"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="btn btn-sm btn-success">Publish</button></form>
+        <form method="post" action="/admin/events/{{ it.event.id }}/delete" onsubmit="return confirm('Delete this draft?');"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="btn btn-sm btn-outline-secondary">Delete draft</button></form>
+      {% elif it.event.status == 'published' %}
+        <form method="post" action="/admin/events/{{ it.event.id }}/cancel" onsubmit="return confirm('Cancel this event? Every booking will be fully refunded.');"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="btn btn-sm btn-outline-danger">Cancel event</button></form>
+      {% endif %}
+    </div>
+  </div>
+  {% else %}
+  <div class="list-group-item text-muted">No events yet.</div>
+  {% endfor %}
+</div>
+{% endblock %}

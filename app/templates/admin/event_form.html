@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if event else 'New' }} event - EventSphere{% endblock %}
+{% block content %}
+{% set active = 'events' %}{% include "admin/_nav.html" %}
+<h1 class="h4 mb-3">{{ 'Edit event' if event else 'New event' }}</h1>
+{% if locked %}<div class="alert alert-warning">Tickets have already been sold, so the venue, time and ticket categories are locked. You can still edit the title, category and description. To change the rest, cancel the event (everyone is refunded) and create a new one.</div>{% endif %}
+{% if errors %}<div class="alert alert-danger"><ul class="mb-0">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+<form method="post" class="card card-body">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <div class="row g-2">
+    <div class="col-12 col-md-8"><label class="form-label" for="title">Title</label><input class="form-control" id="title" name="title" value="{{ form.get('title', '') }}" required></div>
+    <div class="col-12 col-md-4"><label class="form-label" for="category">Category</label>
+      <select class="form-select" id="category" name="category">{% for c in categories %}<option value="{{ c }}" {% if form.get('category') == c %}selected{% endif %}>{{ c | capitalize }}</option>{% endfor %}</select></div>
+    <div class="col-12 col-md-4"><label class="form-label" for="venue_id">Venue</label>
+      <select class="form-select" id="venue_id" name="venue_id" {% if locked %}disabled{% endif %}>
+        {% for v in venues %}<option value="{{ v.id }}" {% if form.get('venue_id') == v.id|string %}selected{% endif %}>{{ v.name }} (capacity {{ v.capacity }})</option>{% endfor %}</select></div>
+    <div class="col-12 col-md-4"><label class="form-label" for="start_time">Start</label><input class="form-control" id="start_time" name="start_time" type="datetime-local" value="{{ form.get('start_time', '') }}" {% if locked %}disabled{% else %}required{% endif %}></div>
+    <div class="col-12 col-md-4"><label class="form-label" for="end_time">End</label><input class="form-control" id="end_time" name="end_time" type="datetime-local" value="{{ form.get('end_time', '') }}" {% if locked %}disabled{% else %}required{% endif %}></div>
+    <div class="col-12"><label class="form-label" for="description">Description</label><textarea class="form-control" id="description" name="description" rows="3">{{ form.get('description', '') }}</textarea></div>
+  </div>
+
+  {% if not locked %}
+  <h2 class="h6 mt-3">Ticket categories</h2>
+  <div class="form-text mb-2">Total tickets may not exceed the venue capacity.</div>
+  <div id="cat-rows">
+    {% for c in form.cats %}
+    <div class="row g-2 mb-2 cat-row">
+      <input type="hidden" name="cat_id" value="{{ c.id }}">
+      <div class="col-12 col-md-5"><input class="form-control" name="cat_name" placeholder="Name (e.g. General)" value="{{ c.name }}"></div>
+      <div class="col-6 col-md-3"><input class="form-control" name="cat_price" type="number" step="0.01" min="0" placeholder="Price (Rs.)" value="{{ c.price }}"></div>
+      <div class="col-6 col-md-4"><input class="form-control" name="cat_qty" type="number" min="1" placeholder="Quantity" value="{{ c.quantity }}"></div>
+    </div>
+    {% endfor %}
+  </div>
+  <button type="button" class="btn btn-sm btn-outline-secondary mb-3" id="add-cat">+ Add ticket category</button>
+  {% endif %}
+
+  <div class="d-flex flex-wrap gap-2">
+    {% if not event or event.status == 'draft' %}
+      <button class="btn btn-outline-primary" name="action" value="draft">Save as draft</button>
+      <button class="btn btn-success" name="action" value="publish">{{ 'Save & publish' if event else 'Publish' }}</button>
+    {% else %}
+      <button class="btn btn-primary" name="action" value="draft">Save changes</button>
+    {% endif %}
+    <a class="btn btn-link" href="/admin/events">Back</a>
+  </div>
+</form>
+{% endblock %}
+{% block scripts %}
+<script>
+  var addBtn = document.getElementById('add-cat');
+  if (addBtn) addBtn.addEventListener('click', function () {
+    var rows = document.querySelectorAll('.cat-row');
+    var copy = rows[rows.length - 1].cloneNode(true);
+    copy.querySelectorAll('input').forEach(function (i) { i.value = ''; });
+    document.getElementById('cat-rows').appendChild(copy);
+  });
+</script>
+{% endblock %}

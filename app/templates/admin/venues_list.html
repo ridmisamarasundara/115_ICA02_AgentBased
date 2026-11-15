@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Venues - EventSphere{% endblock %}
+{% block content %}
+{% set active = 'venues' %}{% include "admin/_nav.html" %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h4 mb-0">Venues</h1><a class="btn btn-primary btn-sm" href="/admin/venues/new">New venue</a>
+</div>
+<div class="list-group">
+  {% for v in venues %}
+  <div class="list-group-item d-flex gap-3 align-items-center">
+    {% if v.image_url %}<img src="{{ v.image_url }}" alt="" style="width:72px;height:54px;object-fit:cover" class="rounded">{% endif %}
+    <div class="flex-grow-1">
+      <strong>{{ v.name }}</strong>
+      {% if v.open_for_hire %}<span class="badge bg-success">Open for hire</span>{% else %}<span class="badge bg-secondary">Not for hire</span>{% endif %}
+      <div class="small text-muted">{{ v.location }} &middot; capacity {{ v.capacity }} &middot; {{ v.hourly_rate | money }}/hour</div>
+    </div>
+    <a class="btn btn-sm btn-outline-primary" href="/admin/venues/{{ v.id }}/edit">Edit</a>
+  </div>
+  {% else %}
+  <div class="list-group-item text-muted">No venues yet.</div>
+  {% endfor %}
+</div>
+{% endblock %}

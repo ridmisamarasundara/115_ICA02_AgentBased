@@ -7,6 +7,7 @@
   {% if event.status == 'cancelled' %}<span class="badge bg-danger">Cancelled</span>{% endif %}
   {% if event.status == 'draft' %}<span class="badge bg-warning text-dark">Draft</span>{% endif %}
 </h1>
+{% if event.venue.image_url %}<img src="{{ event.venue.image_url }}" alt="{{ event.venue.name }}" class="img-fluid rounded mb-2" style="max-height:240px">{% endif %}
 <p class="text-muted">{{ event.start_time | dt }} to {{ event.end_time | dt }}<br>{{ event.venue.name }}, {{ event.venue.location }}</p>
 <p>{{ event.description }}</p>
 

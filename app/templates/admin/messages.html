@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Agent log - EventSphere{% endblock %}
+{% block content %}
+{% set active = 'messages' %}{% include "admin/_nav.html" %}
+<h1 class="h4 mb-3">Agent message log</h1>
+<form class="row g-2 mb-3" method="get" action="/admin/messages">
+  <div class="col-12 col-md-3"><input class="form-control" name="conversation" placeholder="Conversation id" value="{{ conversation }}"></div>
+  <div class="col-6 col-md-3"><select class="form-select" name="agent"><option value="">Any agent</option>{% for a in agents %}<option {% if a == agent %}selected{% endif %}>{{ a }}</option>{% endfor %}</select></div>
+  <div class="col-6 col-md-3"><select class="form-select" name="performative"><option value="">Any performative</option>{% for p in performatives %}<option {% if p == performative %}selected{% endif %}>{{ p }}</option>{% endfor %}</select></div>
+  <div class="col-12 col-md-3 d-flex gap-2"><button class="btn btn-primary">Filter</button><a class="btn btn-outline-secondary" href="/admin/messages">Reset</a></div>
+</form>
+{% if conversation %}<div class="alert alert-info py-2">Showing one conversation in order. Every message below belongs to the same user action.</div>{% endif %}
+<div class="table-responsive">
+<table class="table table-sm align-middle">
+  <thead><tr><th>Time</th><th>Conversation</th><th>From &rarr; To</th><th>Performative</th><th>Content</th></tr></thead>
+  <tbody>
+  {% for it in items %}
+  <tr>
+    <td class="small text-nowrap">{{ it.m.created_at.strftime('%d %b %H:%M:%S') }}</td>
+    <td><a class="small font-monospace" href="/admin/messages?conversation={{ it.m.conversation_id }}">{{ it.m.conversation_id }}</a></td>
+    <td class="text-nowrap">{{ it.m.sender }} &rarr; {{ it.m.receiver }}</td>
+    <td><span class="badge bg-{{ it.badge }}">{{ it.m.performative }}</span></td>
+    <td class="small">{{ it.summary }}<details><summary class="text-muted">JSON</summary><pre class="mb-0">{{ it.json }}</pre></details></td>
+  </tr>
+  {% else %}
+  <tr><td colspan="5" class="text-muted">No messages match.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+<p class="small text-muted">Showing up to 200 messages. Click a conversation id to follow one user action across agents.</p>
+{% endblock %}

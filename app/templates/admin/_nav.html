@@ -1,0 +1,5 @@
+<ul class="nav nav-pills mb-3 flex-wrap">
+  {% for key, label, href in [('dashboard','Dashboard','/admin'),('venues','Venues','/admin/venues'),('events','Events','/admin/events'),('hire','Hire requests','/admin/hire'),('messages','Agent log','/admin/messages'),('agents','Agent state','/admin/agents')] %}
+  <li class="nav-item"><a class="nav-link {% if active == key %}active{% endif %}" href="{{ href }}">{{ label }}</a></li>
+  {% endfor %}
+</ul>
